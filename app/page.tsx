@@ -1,101 +1,342 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import axios from "axios";
+
+interface Student {
+  id: number;
+  student_name: string;
+  english: number;
+  math: number;
+  hindi: number;
+  science: number;
+  social_science: number;
+}
+
+interface FormData {
+  student_name: string;
+  english: number;
+  math: number;
+  hindi: number;
+  science: number;
+  social_science: number;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [students, setStudents] = useState<Student[]>([]);
+  const [formData, setFormData] = useState<FormData>({
+    student_name: "",
+    english: 0,
+    math: 0,
+    hindi: 0,
+    science: 0,
+    social_science: 0,
+  });
+  const [submittedMarksheets, setSubmittedMarksheets] = useState<FormData[]>([]);
+  const [percentages, setPercentages] = useState({
+    english: 0,
+    math: 0,
+    hindi: 0,
+    science: 0,
+    social_science: 0,
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    fetchMarks();
+  }, []);
+
+  const fetchMarks = async () => {
+    try {
+      const res = await axios.get<Student[]>("http://localhost:5000/api/marks");
+      setStudents(res.data);
+    } catch (error) {
+      console.error("Error fetching marks:", error);
+    }
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === "student_name") {
+      setFormData({ ...formData, [name]: value });
+    } else {
+      const numValue = Math.min(Number(value), 100);
+      if (numValue >= 0 && numValue <= 100) {
+        setFormData({ ...formData, [name]: numValue });
+        setPercentages({ ...percentages, [name]: (numValue / 100) * 100 });
+      }
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.post("http://localhost:5000/api/marks", formData);
+      fetchMarks();
+      setSubmittedMarksheets([...submittedMarksheets, formData]);
+      resetForm();
+    } catch (error) {
+      console.error("Error submitting marks:", error);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      student_name: "",
+      english: 0,
+      math: 0,
+      hindi: 0,
+      science: 0,
+      social_science: 0,
+    });
+  };
+
+  const calculateRankings = () => {
+    return [...students].sort((a, b) => {
+      const totalA = Object.values(a).slice(2).reduce((sum, mark) => sum + (typeof mark === "number" ? mark : 0), 0);
+      const totalB = Object.values(b).slice(2).reduce((sum, mark) => sum + (typeof mark === "number" ? mark : 0), 0);
+      return totalB - totalA;
+    });
+  };
+
+  const getSubjectToppers = () => {
+    const toppers: { [key: string]: { names: string[]; score: number } } = {
+      english: { names: [], score: -1 },
+      math: { names: [], score: -1 },
+      hindi: { names: [], score: -1 },
+      science: { names: [], score: -1 },
+      social_science: { names: [], score: -1 },
+    };
+
+    students.forEach((student) => {
+      Object.keys(toppers).forEach((subject) => {
+        const score = student[subject as keyof Student];
+        if (typeof score === "number") {
+          if (score > toppers[subject].score) {
+            toppers[subject] = { names: [student.student_name], score: score };
+          } else if (score === toppers[subject].score) {
+            toppers[subject].names.push(student.student_name);
+          }
+        }
+      });
+    });
+
+    return toppers;
+  };
+
+  const rankings = calculateRankings();
+  const toppers = getSubjectToppers();
+
+  return (
+    <div className="container">
+      <h1 className="title">Tuition Class Marks Input</h1>
+
+      <form onSubmit={handleSubmit} className="form">
+        <div className="studentNameContainer">
+          <input
+            type="text"
+            name="student_name"
+            placeholder="Student Name"
+            value={formData.student_name}
+            onChange={handleChange}
+            className="input studentNameInput"
+            required
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <table className="formTable">
+          <thead>
+            <tr>
+              <th>Subjects</th>
+              <th>Maximum Marks</th>
+              <th>Marks Obtained</th>
+              <th>Percentage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>English</td>
+              <td>100</td>
+              <td>
+                <input
+                  type="number"
+                  name="english"
+                  placeholder="English"
+                  value={formData.english}
+                  onChange={handleChange}
+                  className="input"
+                  required
+                />
+              </td>
+              <td>{percentages.english.toFixed(2)}%</td>
+            </tr>
+            <tr>
+              <td>Math</td>
+              <td>100</td>
+              <td>
+                <input
+                  type="number"
+                  name="math"
+                  placeholder="Math"
+                  value={formData.math}
+                  onChange={handleChange}
+                  className="input"
+                  required
+                />
+              </td>
+              <td>{percentages.math.toFixed(2)}%</td>
+            </tr>
+            <tr>
+              <td>Hindi</td>
+              <td>100</td>
+              <td>
+                <input
+                  type="number"
+                  name="hindi"
+                  placeholder="Hindi"
+                  value={formData.hindi}
+                  onChange={handleChange}
+                  className="input"
+                  required
+                />
+              </td>
+              <td>{percentages.hindi.toFixed(2)}%</td>
+            </tr>
+            <tr>
+              <td>Science</td>
+              <td>100</td>
+              <td>
+                <input
+                  type="number"
+                  name="science"
+                  placeholder="Science"
+                  value={formData.science}
+                  onChange={handleChange}
+                  className="input"
+                  required
+                />
+              </td>
+              <td>{percentages.science.toFixed(2)}%</td>
+            </tr>
+            <tr>
+              <td>Social Science</td>
+              <td>100</td>
+              <td>
+                <input
+                  type="number"
+                  name="social_science"
+                  placeholder="Social Science"
+                  value={formData.social_science}
+                  onChange={handleChange}
+                  className="input"
+                  required
+                />
+              </td>
+              <td>{percentages.social_science.toFixed(2)}%</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="buttonGroup">
+          <button type="submit" className="buttonSubmit">
+            Submit
+          </button>
+          <button type="button" className="buttonReset" onClick={resetForm}>
+            Reset
+          </button>
+        </div>
+      </form>
+
+      {/* Display all submitted marksheets */}
+      {submittedMarksheets.map((marksheet, index) => (
+        <div key={index}>
+          <h2 className="subtitle">{marksheet.student_name}'s Marksheet</h2>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Subjects</th>
+                <th>Maximum Marks</th>
+                <th>Marks Obtained</th>
+                <th>Percentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>English</td>
+                <td>100</td>
+                <td>{marksheet.english}</td>
+                <td>{(marksheet.english / 100 * 100).toFixed(2)}%</td>
+              </tr>
+              <tr>
+                <td>Math</td>
+                <td>100</td>
+                <td>{marksheet.math}</td>
+                <td>{(marksheet.math / 100 * 100).toFixed(2)}%</td>
+              </tr>
+              <tr>
+                <td>Hindi</td>
+                <td>100</td>
+                <td>{marksheet.hindi}</td>
+                <td>{(marksheet.hindi / 100 * 100).toFixed(2)}%</td>
+              </tr>
+              <tr>
+                <td>Science</td>
+                <td>100</td>
+                <td>{marksheet.science}</td>
+                <td>{(marksheet.science / 100 * 100).toFixed(2)}%</td>
+              </tr>
+              <tr>
+                <td>Social Science</td>
+                <td>100</td>
+                <td>{marksheet.social_science}</td>
+                <td>{(marksheet.social_science / 100 * 100).toFixed(2)}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      ))}
+
+      <h2 className="subtitle">Overall Rankings</h2>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Student Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rankings.map((student, index) => {
+            const totalMarks = Object.values(student)
+              .slice(2)
+              .reduce((sum, mark) => sum + (typeof mark === "number" ? mark : 0), 0);
+            return (
+              <tr key={student.id}>
+                <td>{index + 1}</td>
+                <td>{student.student_name}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <h2 className="subtitle">Topper of Each Subject</h2>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Topper</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.keys(toppers).map((subject) => (
+            <tr key={subject}>
+              <td>{subject.charAt(0).toUpperCase() + subject.slice(1).replace('_', ' ')}</td>
+              <td>{toppers[subject].names.length > 0 ? toppers[subject].names.join(' / ') : "No entries"}</td>
+              <td>{toppers[subject].score > -1 ? toppers[subject].score : 0}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

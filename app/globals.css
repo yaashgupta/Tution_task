@@ -1,27 +1,183 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Arial', sans-serif;
+  line-height: 1.6;
+  background-color: #f4f4f9;
+  color: #333;
+  padding: 20px;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Title */
+.title {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #2B1C1C;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Form styles */
+.form {
+  margin-bottom: 40px;
+}
+
+.studentNameContainer {
+  margin-bottom: 20px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #FFD09B; /* Updated color */
+  border-radius: 5px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.formTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.formTable th,
+.formTable td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.formTable th {
+  background-color: #FFD09B; /* Updated color */
+  color: white;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: space-between;
+}
+
+.buttonSubmit,
+.buttonReset {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.buttonSubmit {
+  background-color: #15B392; /* Updated color */
+  color: white;
+}
+
+.buttonSubmit:hover {
+  background-color: #e5bb85; /* Darker shade for hover */
+}
+
+.buttonReset {
+  background-color: #D91656;
+  color: white;
+}
+
+.buttonReset:hover {
+  background-color: #c82333;
+}
+
+/* Table styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 40px;
+}
+
+.table th,
+.table td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.table th {
+  background-color: #FFD09B; /* Updated color */
+  color: white;
+}
+
+/* Subtitle styles */
+.subtitle {
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .formTable th, .formTable td {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .table th, .table td {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .input {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .buttonSubmit, .buttonReset {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .buttonGroup {
+    flex-direction: column;
+  }
+
+  .buttonSubmit,
+  .buttonReset {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .subtitle {
+    font-size: 1.4rem;
+  }
+
+  .input, .formTable th, .formTable td, .table th, .table td {
+    font-size: 0.85rem;
   }
 }
