@@ -153,86 +153,24 @@ export default function Home() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>English</td>
-              <td>100</td>
-              <td>
-                <input
-                  type="number"
-                  name="english"
-                  placeholder="English"
-                  value={formData.english}
-                  onChange={handleChange}
-                  className="input"
-                  required
-                />
-              </td>
-              <td>{percentages.english.toFixed(2)}%</td>
-            </tr>
-            <tr>
-              <td>Math</td>
-              <td>100</td>
-              <td>
-                <input
-                  type="number"
-                  name="math"
-                  placeholder="Math"
-                  value={formData.math}
-                  onChange={handleChange}
-                  className="input"
-                  required
-                />
-              </td>
-              <td>{percentages.math.toFixed(2)}%</td>
-            </tr>
-            <tr>
-              <td>Hindi</td>
-              <td>100</td>
-              <td>
-                <input
-                  type="number"
-                  name="hindi"
-                  placeholder="Hindi"
-                  value={formData.hindi}
-                  onChange={handleChange}
-                  className="input"
-                  required
-                />
-              </td>
-              <td>{percentages.hindi.toFixed(2)}%</td>
-            </tr>
-            <tr>
-              <td>Science</td>
-              <td>100</td>
-              <td>
-                <input
-                  type="number"
-                  name="science"
-                  placeholder="Science"
-                  value={formData.science}
-                  onChange={handleChange}
-                  className="input"
-                  required
-                />
-              </td>
-              <td>{percentages.science.toFixed(2)}%</td>
-            </tr>
-            <tr>
-              <td>Social Science</td>
-              <td>100</td>
-              <td>
-                <input
-                  type="number"
-                  name="social_science"
-                  placeholder="Social Science"
-                  value={formData.social_science}
-                  onChange={handleChange}
-                  className="input"
-                  required
-                />
-              </td>
-              <td>{percentages.social_science.toFixed(2)}%</td>
-            </tr>
+            {["english", "math", "hindi", "science", "social_science"].map((subject) => (
+              <tr key={subject}>
+                <td>{subject.charAt(0).toUpperCase() + subject.slice(1).replace('_', ' ')}</td>
+                <td>100</td>
+                <td>
+                  <input
+                    type="number"
+                    name={subject}
+                    placeholder={subject.charAt(0).toUpperCase() + subject.slice(1)}
+                    value={formData[subject as keyof FormData]}
+                    onChange={handleChange}
+                    className="input"
+                    required
+                  />
+                </td>
+                <td>{percentages[subject as keyof typeof percentages].toFixed(2)}%</td>
+              </tr>
+            ))}
           </tbody>
         </table>
 
@@ -249,7 +187,7 @@ export default function Home() {
       {/* Display all submitted marksheets */}
       {submittedMarksheets.map((marksheet, index) => (
         <div key={index}>
-          <h2 className="subtitle">{marksheet.student_name}'s Marksheet</h2>
+          <h2 className="subtitle">{marksheet.student_name}&apos;s Marksheet</h2>
           <table className="table">
             <thead>
               <tr>
@@ -260,36 +198,17 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>English</td>
-                <td>100</td>
-                <td>{marksheet.english}</td>
-                <td>{(marksheet.english / 100 * 100).toFixed(2)}%</td>
-              </tr>
-              <tr>
-                <td>Math</td>
-                <td>100</td>
-                <td>{marksheet.math}</td>
-                <td>{(marksheet.math / 100 * 100).toFixed(2)}%</td>
-              </tr>
-              <tr>
-                <td>Hindi</td>
-                <td>100</td>
-                <td>{marksheet.hindi}</td>
-                <td>{(marksheet.hindi / 100 * 100).toFixed(2)}%</td>
-              </tr>
-              <tr>
-                <td>Science</td>
-                <td>100</td>
-                <td>{marksheet.science}</td>
-                <td>{(marksheet.science / 100 * 100).toFixed(2)}%</td>
-              </tr>
-              <tr>
-                <td>Social Science</td>
-                <td>100</td>
-                <td>{marksheet.social_science}</td>
-                <td>{(marksheet.social_science / 100 * 100).toFixed(2)}%</td>
-              </tr>
+              {["english", "math", "hindi", "science", "social_science"].map((subject) => {
+                const marks = marksheet[subject as keyof FormData] as number;
+                return (
+                  <tr key={subject}>
+                    <td>{subject.charAt(0).toUpperCase() + subject.slice(1).replace('_', ' ')}</td>
+                    <td>100</td>
+                    <td>{marks}</td>
+                    <td>{(marks / 100 * 100).toFixed(2)}%</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -301,6 +220,7 @@ export default function Home() {
           <tr>
             <th>Rank</th>
             <th>Student Name</th>
+            <th>Total Marks</th>
           </tr>
         </thead>
         <tbody>
@@ -312,6 +232,7 @@ export default function Home() {
               <tr key={student.id}>
                 <td>{index + 1}</td>
                 <td>{student.student_name}</td>
+                <td>{totalMarks}</td> {/* Display total marks here */}
               </tr>
             );
           })}
