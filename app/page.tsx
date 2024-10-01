@@ -92,8 +92,12 @@ export default function Home() {
 
   const calculateRankings = () => {
     return [...students].sort((a, b) => {
-      const totalA = Object.values(a).slice(2).reduce((sum, mark) => sum + (typeof mark === "number" ? mark : 0), 0);
-      const totalB = Object.values(b).slice(2).reduce((sum, mark) => sum + (typeof mark === "number" ? mark : 0), 0);
+      const totalA = Object.values(a)
+        .slice(2)
+        .reduce((sum, mark) => sum + (typeof mark === "number" ? mark : 0), 0);
+      const totalB = Object.values(b)
+        .slice(2)
+        .reduce((sum, mark) => sum + (typeof mark === "number" ? mark : 0), 0);
       return totalB - totalA;
     });
   };
@@ -220,22 +224,15 @@ export default function Home() {
           <tr>
             <th>Rank</th>
             <th>Student Name</th>
-            <th>Total Marks</th>
           </tr>
         </thead>
         <tbody>
-          {rankings.map((student, index) => {
-            const totalMarks = Object.values(student)
-              .slice(2)
-              .reduce((sum, mark) => sum + (typeof mark === "number" ? mark : 0), 0);
-            return (
-              <tr key={student.id}>
-                <td>{index + 1}</td>
-                <td>{student.student_name}</td>
-                <td>{totalMarks}</td> {/* Display total marks here */}
-              </tr>
-            );
-          })}
+          {rankings.map((student, index) => (
+            <tr key={student.id}>
+              <td>{index + 1}</td>
+              <td>{student.student_name}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
 
@@ -252,7 +249,7 @@ export default function Home() {
           {Object.keys(toppers).map((subject) => (
             <tr key={subject}>
               <td>{subject.charAt(0).toUpperCase() + subject.slice(1).replace('_', ' ')}</td>
-              <td>{toppers[subject].names.length > 0 ? toppers[subject].names.join(' / ') : "No entries"}</td>
+              <td>{toppers[subject].names.length > 0 ? toppers[subject].names.join(" / ") : "No entries"}</td>
               <td>{toppers[subject].score > -1 ? toppers[subject].score : 0}</td>
             </tr>
           ))}
